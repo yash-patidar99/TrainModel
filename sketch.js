@@ -1,18 +1,33 @@
 let mobilenet;
+let classifier;
 let video;
 let label = "";
-
+let mobileButton;
+let whistleButton;
+let trainButton;
 function modelReady() {
   console.log("Model is Ready !!!");
-  mobilenet.predict(gotResults);
 }
-function gotResults(err, results) {
+
+function videoReady() {
+  console.log("Video is ready");
+}
+function whileTraining(loss) {
+  if (loss == null) {
+    console.log("Training Complete");
+    classifier.classify(gotResults);
+  } else {
+    console.log(loss);
+  }
+}
+
+function gotResults(err, result) {
   if (err) {
     console.error(err);
   } else {
     // console.log(results);
-    label = results[0].className;
-    mobilenet.predict(gotResults);
+    label = result;
+    classifier.classify(gotResults);
   }
 }
 // function imageReady() {
@@ -23,7 +38,21 @@ function setup() {
   video = createCapture(VIDEO);
   video.hide();
   background(0);
-  mobilenet = ml5.imageClassifier("MobileNet", video, modelReady);
+  mobilenet = ml5.featureExtractor("MobileNet", modelReady);
+  classifier = mobilenet.classification(video, videoReady);
+
+  phoneButton = createButton("happy");
+  phoneButton.mousePressed(function () {
+    classifier.addImage("happy");
+  });
+  whistleButton = createButton("sad");
+  whistleButton.mousePressed(function () {
+    classifier.addImage("sad");
+  });
+  trainButton = createButton("train");
+  trainButton.mousePressed(function () {
+    classifier.train(whileTraining);
+  });
 }
 
 function draw() {
